@@ -5,19 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Explore token unlocks, supply growth and hypothetical selling scenarios with a simple Web3 calculator.">
   <title>Token Unlock Calculator</title>
+
   <style>
     :root { color-scheme:dark; --bg:#000000; --panel:#131313; --input:#080808; --text:#f4f3fa; --muted:#a4a4a4; --line:#292929; --accent:#ff8c38; --lime:#ffffff; --lime-text:#111111; --chart:#ff8735; --error:#ff9d9d; }
     :root[data-theme="light"] { color-scheme:light; --bg:#f4f3f9; --panel:#fff; --input:#f7f6fb; --text:#191826; --muted:#656477; --line:#e5e2ee; --accent:#c9460b; --lime:#191919; --lime-text:#ffffff; --chart:#e45d20; --error:#bd2424; }
+
     * { box-sizing:border-box; }
     body { margin:0; background:var(--bg); color:var(--text); font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-size:14px; }
     button,input { font:inherit; }
     button { cursor:pointer; }
     button:focus-visible,input:focus-visible { outline:2px solid var(--accent); outline-offset:4px; }
+
     .shell { max-width:1180px; margin:auto; padding:0 32px; }
     header { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:25px 0; border-bottom:1px solid var(--line); }
     .brand { display:flex; align-items:center; gap:11px; font-size:16px; font-weight:750; letter-spacing:-.5px; }
     .logo { width:32px; height:32px; display:grid; place-items:center; background:var(--accent); color:var(--bg); border-radius:10px; font-size:22px; }
     .theme { background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:24px; padding:9px 15px; }
+
     .hero { position:relative; overflow:hidden; padding:35px 38px; margin:28px 0 32px; border-radius:16px; background:radial-gradient(ellipse at 65% 0%,#ffb244 0%,transparent 65%),linear-gradient(120deg,#b71515,#ef652c 58%,#be1717); color:#fff; }
     .hero::after { content:"↗"; position:absolute; right:28px; top:-50px; font-size:250px; font-weight:900; opacity:.13; transform:rotate(-12deg); pointer-events:none; }
     .hero .eyebrow { color:#ffe9d5; }
@@ -27,11 +31,13 @@
     h1 { position:relative; z-index:1; font-size:clamp(32px,4.6vw,48px); letter-spacing:-2px; line-height:1.12; margin:15px 0; font-weight:750; }
     h1 span { color:var(--accent); }
     .hero p { color:var(--muted); font-size:16px; line-height:1.65; max-width:620px; margin:0; }
+
     .workspace { display:grid; grid-template-columns:340px minmax(0,1fr); gap:22px; align-items:start; }
     .panel { background:var(--panel); border:1px solid var(--line); border-radius:20px; padding:25px; }
     .panel-top { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:24px; }
     h2 { font-size:16px; margin:0; letter-spacing:-.3px; }
     .tag { color:var(--muted); font-size:10px; letter-spacing:1px; border:1px solid var(--line); border-radius:6px; padding:5px 7px; white-space:nowrap; }
+
     .field { margin-bottom:17px; }
     label { display:block; font-size:12px; color:var(--muted); margin-bottom:8px; }
     .input-wrap { position:relative; }
@@ -40,6 +46,7 @@
     .pair { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
     .divider { border:0; border-top:1px solid var(--line); margin:22px 0; }
     .section-label { color:var(--accent); font-size:10px; letter-spacing:1.5px; font-weight:700; margin-bottom:17px; }
+
     .primary { width:100%; border:0; border-radius:11px; background:var(--lime); color:var(--lime-text); padding:14px; font-weight:750; display:flex; justify-content:space-between; align-items:center; }
     .primary:hover { filter:brightness(1.05); }
     .actions { display:flex; gap:10px; margin-top:12px; }
@@ -49,6 +56,7 @@
     .share-link input { padding:12px; }
     .hint { font-size:11px; line-height:1.6; color:var(--muted); margin:14px 0 0; }
     .error { font-size:12px; line-height:1.6; color:var(--error); margin:12px 0; }
+
     .output { display:grid; gap:20px; }
     .stats { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
     .stat { padding:22px; min-height:157px; position:relative; overflow:hidden; border:0; }
@@ -64,11 +72,13 @@
     .stat-note { color:var(--muted); font-size:11px; margin-top:9px; }
     .accent-card { background:linear-gradient(135deg,var(--panel),color-mix(in srgb,var(--accent) 12%,var(--panel))); }
     .accent-card .stat-value { color:var(--accent); }
+
     .chart-title { margin-bottom:4px; }
     .chart-sub { color:var(--muted); font-size:12px; line-height:1.5; }
     .chart { width:100%; height:auto; display:block; margin-top:18px; overflow:visible; }
     .legend { display:flex; align-items:center; justify-content:space-between; color:var(--muted); font-size:11px; gap:12px; }
     .dot { display:inline-block; width:7px; height:7px; background:var(--accent); border-radius:50%; margin-right:6px; }
+
     .scenario-scroll { overflow-x:auto; margin-top:18px; }
     .scenario-table { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
     .scenario-table caption { text-align:left; color:var(--muted); font-size:12px; line-height:1.6; padding-bottom:14px; }
@@ -79,103 +89,280 @@
     .scenario-table .selected { background:color-mix(in srgb,var(--accent) 10%,var(--panel)); }
     .scenario-table .selected th { color:var(--accent); }
     .scenario-table .current-label { display:block; font-size:10px; margin-top:4px; color:var(--accent); }
+
     .rows { margin-top:21px; }
     .row { display:flex; justify-content:space-between; gap:18px; padding:13px 0; border-top:1px solid var(--line); }
     .row span { color:var(--muted); font-size:12px; }
     .row strong { text-align:right; font-size:13px; font-weight:600; overflow-wrap:anywhere; }
     .assumption { border-left:2px solid var(--accent); padding-left:13px; color:var(--muted); font-size:11px; line-height:1.7; margin-top:15px; }
-    footer { display:flex; justify-content:space-between; gap:16px; padding:30px 0; color:var(--muted); font-size:11px; line-height:1.6; }
-    @media(max-width:900px) { .workspace { grid-template-columns:300px minmax(0,1fr); } .shell { padding:0 20px; } .panel { padding:20px; } }
-    @media(max-width:720px) { .workspace { grid-template-columns:1fr; } .hero { padding:26px 22px; } .hero::after { right:-50px; } .shell { padding:0 16px; } footer { flex-direction:column; gap:5px; } }
-    @media(prefers-reduced-motion:no-preference) { button { transition:filter .15s,background .15s; } }
+
+    .developer-link { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 16px; border:1px solid var(--line); border-radius:10px; background:var(--panel); color:var(--text); text-decoration:none; font-size:12px; font-weight:600; white-space:nowrap; }
+    .developer-link:hover { border-color:var(--accent); color:var(--accent); }
+    .developer-link:focus-visible { outline:2px solid var(--accent); outline-offset:4px; }
+    footer { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:30px 0; color:var(--muted); font-size:11px; line-height:1.6; }
+
+    @media(max-width:900px) {
+      .workspace { grid-template-columns:300px minmax(0,1fr); }
+      .shell { padding:0 20px; }
+      .panel { padding:20px; }
+    }
+
+    @media(max-width:720px) {
+      .workspace { grid-template-columns:1fr; }
+      .hero { padding:26px 22px; }
+      .hero::after { right:-50px; }
+      .shell { padding:0 16px; }
+      footer { flex-direction:column; align-items:flex-start; gap:14px; }
+    }
+
+    @media(prefers-reduced-motion:no-preference) {
+      button { transition:filter .15s,background .15s; }
+    }
   </style>
 </head>
+
 <body>
   <div class="shell">
     <header>
-      <div class="brand"><span class="logo" aria-hidden="true">↗</span> Unlock Calculator</div>
+      <div class="brand">
+        <span class="logo" aria-hidden="true">↗</span>
+        Unlock Calculator
+      </div>
       <button class="theme" id="themeToggle" type="button" aria-label="Switch to light theme">☀ Light</button>
     </header>
+
     <section class="hero">
       <div class="eyebrow">Tokenomics / Scenario explorer</div>
       <h1>Unlocks, <span>in perspective.</span></h1>
       <p>See how an unlock changes circulating supply. Explore a selling scenario before you make your next move.</p>
     </section>
+
     <main class="workspace">
       <form class="panel" id="calculator" novalidate>
-        <div class="panel-top"><h2>Set your scenario</h2><span class="tag">01 / INPUTS</span></div>
-        <div class="field"><label for="supply">Total token supply</label><input id="supply" type="number" value="1000000000" min="1" step="any" required></div>
-        <div class="field"><label for="circulating">Current circulating supply</label><input id="circulating" type="number" value="150000000" min="0" step="any" required></div>
-        <div class="field"><label for="unlock">Upcoming unlock (tokens)</label><input id="unlock" type="number" value="30000000" min="0" step="any" required></div>
-        <div class="pair">
-          <div class="field"><label for="price">Token price</label><div class="input-wrap"><input id="price" type="number" value="0.05" min="0" step="any" required><span class="unit">$</span></div></div>
-          <div class="field"><label for="days">Unlock duration</label><div class="input-wrap"><input id="days" type="number" value="30" min="1" max="3650" step="1" required><span class="unit">days</span></div></div>
+        <div class="panel-top">
+          <h2>Set your scenario</h2>
+          <span class="tag">01 / INPUTS</span>
         </div>
+
+        <div class="field">
+          <label for="supply">Total token supply</label>
+          <input id="supply" type="number" value="1000000000" min="1" step="any" required>
+        </div>
+
+        <div class="field">
+          <label for="circulating">Current circulating supply</label>
+          <input id="circulating" type="number" value="150000000" min="0" step="any" required>
+        </div>
+
+        <div class="field">
+          <label for="unlock">Upcoming unlock (tokens)</label>
+          <input id="unlock" type="number" value="30000000" min="0" step="any" required>
+        </div>
+
+        <div class="pair">
+          <div class="field">
+            <label for="price">Token price</label>
+            <div class="input-wrap">
+              <input id="price" type="number" value="0.05" min="0" step="any" required>
+              <span class="unit">$</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="days">Unlock duration</label>
+            <div class="input-wrap">
+              <input id="days" type="number" value="30" min="1" max="3650" step="1" required>
+              <span class="unit">days</span>
+            </div>
+          </div>
+        </div>
+
         <hr class="divider">
         <div class="section-label">HYPOTHETICAL SELLING</div>
-        <div class="field"><label for="sell">Share of unlocked tokens sold</label><div class="input-wrap"><input id="sell" type="number" value="25" min="0" max="100" step="any" required><span class="unit">%</span></div></div>
-        <div class="field"><label for="volume">Average daily trading volume</label><div class="input-wrap"><input id="volume" type="number" value="500000" min="0" step="any" required><span class="unit">$</span></div></div>
+
+        <div class="field">
+          <label for="sell">Share of unlocked tokens sold</label>
+          <div class="input-wrap">
+            <input id="sell" type="number" value="25" min="0" max="100" step="any" required>
+            <span class="unit">%</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="volume">Average daily trading volume</label>
+          <div class="input-wrap">
+            <input id="volume" type="number" value="500000" min="0" step="any" required>
+            <span class="unit">$</span>
+          </div>
+        </div>
+
         <p id="error" class="error" role="alert" hidden></p>
-        <button class="primary" type="submit">Calculate scenario <span aria-hidden="true">↗</span></button>
+
+        <button class="primary" type="submit">
+          Calculate scenario
+          <span aria-hidden="true">↗</span>
+        </button>
+
         <div class="actions">
           <button class="secondary" id="shareButton" type="button">Share scenario</button>
           <button class="secondary" id="resetButton" type="button">Reset</button>
         </div>
+
         <p class="status" id="actionStatus" role="status" aria-live="polite"></p>
+
         <div class="share-link" id="shareFallback" hidden>
           <label for="shareUrl">Copy this scenario link</label>
           <input id="shareUrl" type="text" readonly>
         </div>
+
         <p class="hint">Valid scenarios are saved in this browser. Shared links take priority over saved inputs.</p>
         <p class="hint">Use one token unit throughout. Duration assumes equal daily unlocks; use 1 day for a single cliff unlock.</p>
       </form>
+
       <section class="output" aria-label="Scenario results">
         <div class="stats" aria-live="polite">
-          <div class="panel stat accent-card"><div class="stat-label">Circulating supply growth</div><div class="stat-value" id="growth">—</div><div class="stat-note">Relative to current circulation</div></div>
-          <div class="panel stat"><div class="stat-label">Total unlock value</div><div class="stat-value" id="unlockValue">—</div><div class="stat-note">At the entered token price</div></div>
-          <div class="panel stat"><div class="stat-label">New circulating supply</div><div class="stat-value" id="newSupply">—</div><div class="stat-note" id="supplyNote">—</div></div>
-          <div class="panel stat"><div class="stat-label">Daily selling / daily volume</div><div class="stat-value" id="volumeRatio">—</div><div class="stat-note">Scenario ratio, not a price forecast</div></div>
-        </div>
-        <div class="panel">
-          <div class="panel-top"><div><h2 class="chart-title">Supply trajectory</h2><div class="chart-sub">Circulating tokens over the unlock period</div></div><span class="tag">02 / PROJECTION</span></div>
-          <svg id="chart" class="chart" viewBox="0 0 620 230" role="img" aria-label="Circulating supply projection"><title>Circulating supply projection</title></svg>
-          <div class="legend"><span><i class="dot"></i>Circulating supply</span><span id="scheduleLabel">Linear daily unlock</span></div>
-          <div class="rows">
-            <div class="row"><span>Unlock / total supply</span><strong id="unlockShare">—</strong></div>
-            <div class="row"><span>Tokens unlocked per day</span><strong id="dailyTokens">—</strong></div>
-            <div class="row"><span>Hypothetical total selling</span><strong id="sellValue">—</strong></div>
-            <div class="row"><span>Hypothetical selling per day</span><strong id="dailySelling">—</strong></div>
-            <div class="row"><span>Market cap after unlock · fixed price</span><strong id="marketCap">—</strong></div>
+          <div class="panel stat accent-card">
+            <div class="stat-label">Circulating supply growth</div>
+            <div class="stat-value" id="growth">—</div>
+            <div class="stat-note">Relative to current circulation</div>
           </div>
-          <div class="assumption">All unlocked tokens are assumed to enter circulation. Price and daily volume stay fixed in this model. Selling is spread evenly across the period. Trading volume does not measure order-book liquidity or predict price impact.</div>
+
+          <div class="panel stat">
+            <div class="stat-label">Total unlock value</div>
+            <div class="stat-value" id="unlockValue">—</div>
+            <div class="stat-note">At the entered token price</div>
+          </div>
+
+          <div class="panel stat">
+            <div class="stat-label">New circulating supply</div>
+            <div class="stat-value" id="newSupply">—</div>
+            <div class="stat-note" id="supplyNote">—</div>
+          </div>
+
+          <div class="panel stat">
+            <div class="stat-label">Daily selling / daily volume</div>
+            <div class="stat-value" id="volumeRatio">—</div>
+            <div class="stat-note">Scenario ratio, not a price forecast</div>
+          </div>
         </div>
+
         <div class="panel">
-          <div class="panel-top"><div><h2 class="chart-title">Compare selling scenarios</h2><div class="chart-sub">Same unlock, price, duration and daily volume</div></div><span class="tag">03 / COMPARE</span></div>
+          <div class="panel-top">
+            <div>
+              <h2 class="chart-title">Supply trajectory</h2>
+              <div class="chart-sub">Circulating tokens over the unlock period</div>
+            </div>
+            <span class="tag">02 / PROJECTION</span>
+          </div>
+
+          <svg id="chart" class="chart" viewBox="0 0 620 230" role="img" aria-label="Circulating supply projection">
+            <title>Circulating supply projection</title>
+          </svg>
+
+          <div class="legend">
+            <span><i class="dot"></i>Circulating supply</span>
+            <span id="scheduleLabel">Linear daily unlock</span>
+          </div>
+
+          <div class="rows">
+            <div class="row">
+              <span>Unlock / total supply</span>
+              <strong id="unlockShare">—</strong>
+            </div>
+            <div class="row">
+              <span>Tokens unlocked per day</span>
+              <strong id="dailyTokens">—</strong>
+            </div>
+            <div class="row">
+              <span>Hypothetical total selling</span>
+              <strong id="sellValue">—</strong>
+            </div>
+            <div class="row">
+              <span>Hypothetical selling per day</span>
+              <strong id="dailySelling">—</strong>
+            </div>
+            <div class="row">
+              <span>Market cap after unlock · fixed price</span>
+              <strong id="marketCap">—</strong>
+            </div>
+          </div>
+
+          <div class="assumption">
+            All unlocked tokens are assumed to enter circulation. Price and daily volume stay fixed in this model. Selling is spread evenly across the period. Trading volume does not measure order-book liquidity or predict price impact.
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-top">
+            <div>
+              <h2 class="chart-title">Compare selling scenarios</h2>
+              <div class="chart-sub">Same unlock, price, duration and daily volume</div>
+            </div>
+            <span class="tag">03 / COMPARE</span>
+          </div>
+
           <div class="scenario-scroll" role="region" aria-label="Selling scenario comparison" tabindex="0">
             <table class="scenario-table">
               <caption>Compare 10%, 25%, 50% and 100% sold. Your selected share is highlighted and included if different.</caption>
-              <thead><tr><th scope="col">Share sold</th><th scope="col">Tokens sold</th><th scope="col">Total selling</th><th scope="col">Daily selling</th><th scope="col">Daily selling / volume</th></tr></thead>
+              <thead>
+                <tr>
+                  <th scope="col">Share sold</th>
+                  <th scope="col">Tokens sold</th>
+                  <th scope="col">Total selling</th>
+                  <th scope="col">Daily selling</th>
+                  <th scope="col">Daily selling / volume</th>
+                </tr>
+              </thead>
               <tbody id="scenarioRows"></tbody>
             </table>
           </div>
+
           <p class="hint" id="scenarioStatus" aria-live="polite"></p>
         </div>
       </section>
     </main>
-    <footer><span>Token Unlock Calculator · Built for clearer tokenomics</span><span>Scenario estimates · No live market data</span></footer>
+
+    <footer>
+      <span>Token Unlock Calculator · Scenario estimates · No live market data</span>
+
+      <a
+        class="developer-link"
+        href="https://x.com/_Anchor_Point_"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Visit the developer's profile on X"
+      >
+        <span aria-hidden="true">𝕏</span>
+        Built by @_Anchor_Point_
+        <span aria-hidden="true">↗</span>
+      </a>
+    </footer>
   </div>
+
   <script>
     const $ = id => document.getElementById(id);
     const keys=['supply','circulating','unlock','price','days','sell','volume'];
-    const defaults={supply:1000000000,circulating:150000000,unlock:30000000,price:0.05,days:30,sell:25,volume:500000};
+    const defaults={
+      supply:1000000000,
+      circulating:150000000,
+      unlock:30000000,
+      price:0.05,
+      days:30,
+      sell:25,
+      volume:500000
+    };
     const storageKey='unlock-scenario-v1';
 
     function readInputs() {
       const v={};
+
       keys.forEach(key => {
-        if ($(key).value.trim()==='') throw new Error('Fill in every field before calculating.');
+        if ($(key).value.trim()==='') {
+          throw new Error('Fill in every field before calculating.');
+        }
         v[key]=Number($(key).value);
       });
+
       compute(v);
       return v;
     }
@@ -199,13 +386,17 @@
       if (keys.some(key=>params.has(key))) {
         try {
           const v={};
+
           keys.forEach(key=>{
             const values=params.getAll(key);
+
             if(values.length!==1 || values[0].trim()==='') {
               throw new Error('Incomplete scenario link.');
             }
+
             v[key]=Number(values[0]);
           });
+
           compute(v);
           fillInputs(v);
           return 'Shared scenario loaded.';
@@ -217,6 +408,7 @@
 
       try {
         const stored=JSON.parse(localStorage.getItem(storageKey));
+
         if(stored && keys.every(key=>typeof stored[key]==='number')) {
           const v=Object.fromEntries(keys.map(key=>[key,stored[key]]));
           compute(v);
@@ -247,6 +439,7 @@
 
       const v=readInputs();
       const url=new URL(window.location.href);
+
       keys.forEach(key=>url.searchParams.set(key,String(v[key])));
       hideShareLink();
 
@@ -271,7 +464,9 @@
       fillInputs(defaults);
       clearSharedParams();
       hideShareLink();
+
       const ok=calculate();
+
       $('actionStatus').textContent=ok && saveScenario(defaults)
         ? 'Default example restored and saved.'
         : 'Default example restored. Browser storage is unavailable.';
@@ -296,15 +491,19 @@
       if (!Object.values(v).every(Number.isFinite)) {
         throw new Error('Enter a valid number in every field.');
       }
+
       if (v.supply <= 0 || v.circulating < 0 || v.unlock < 0 || v.price < 0 || v.volume < 0) {
         throw new Error('Supply must be positive. Token counts, price and volume cannot be negative.');
       }
+
       if (v.circulating + v.unlock > v.supply) {
         throw new Error('Circulating supply plus the unlock cannot exceed total supply.');
       }
+
       if (!Number.isInteger(v.days) || v.days < 1 || v.days > 3650) {
         throw new Error('Enter a whole unlock duration from 1 to 3,650 days.');
       }
+
       if (v.sell < 0 || v.sell > 100) {
         throw new Error('The share sold must be between 0% and 100%.');
       }
@@ -403,8 +602,11 @@
 
       const make = (tag,attrs,text) => {
         const node = document.createElementNS('http://www.w3.org/2000/svg',tag);
+
         Object.entries(attrs).forEach(([k,val]) => node.setAttribute(k,val));
+
         if (text !== undefined) node.textContent = text;
+
         svg.appendChild(node);
         return node;
       };
@@ -423,13 +625,17 @@
         const yy=24+i*160/3;
 
         make('line',{
-          x1:66,y1:yy,x2:604,y2:yy,
+          x1:66,
+          y1:yy,
+          x2:604,
+          y2:yy,
           stroke:'var(--line)',
           'stroke-dasharray':'4 5'
         });
 
         make('text',{
-          x:54,y:yy+4,
+          x:54,
+          y:yy+4,
           fill:'var(--muted)',
           'text-anchor':'end',
           'font-size':11
@@ -454,7 +660,9 @@
       });
 
       make('circle',{
-        cx:604,cy:end,r:5,
+        cx:604,
+        cy:end,
+        r:5,
         fill:'var(--chart)',
         stroke:'var(--panel)',
         'stroke-width':3
@@ -492,7 +700,10 @@
         };
 
         Object.entries(values).forEach(([id,value]) => $(id).textContent=value);
-        $('scheduleLabel').textContent=v.days===1 ? '1-day unlock scenario' : 'Linear daily unlock';
+
+        $('scheduleLabel').textContent=v.days===1
+          ? '1-day unlock scenario'
+          : 'Linear daily unlock';
 
         drawChart(v);
         renderScenarios(v,scenarios);
@@ -511,14 +722,24 @@
         $('error').hidden=false;
 
         [
-          'growth','unlockValue','newSupply','supplyNote','volumeRatio',
-          'unlockShare','dailyTokens','sellValue','dailySelling','marketCap'
+          'growth',
+          'unlockValue',
+          'newSupply',
+          'supplyNote',
+          'volumeRatio',
+          'unlockShare',
+          'dailyTokens',
+          'sellValue',
+          'dailySelling',
+          'marketCap'
         ].forEach(id=>$(id).textContent='—');
 
         $('chart').replaceChildren();
         $('scenarioRows').replaceChildren();
         $('scenarioStatus').textContent='Enter valid inputs to compare scenarios.';
+
         hideShareLink();
+
         $('actionStatus').textContent='Fix the inputs to calculate, save or share this scenario.';
 
         return false;
@@ -528,16 +749,19 @@
     function setTheme(theme) {
       document.documentElement.dataset.theme=theme;
       $('themeToggle').textContent=theme==='dark' ? '☀ Light' : '☾ Dark';
+
       $('themeToggle').setAttribute(
         'aria-label',
         `Switch to ${theme==='dark'?'light':'dark'} theme`
       );
+
       try {
         localStorage.setItem('unlock-theme',theme);
       } catch {}
     }
 
     let savedTheme;
+
     try {
       savedTheme=localStorage.getItem('unlock-theme');
     } catch {}
@@ -570,8 +794,12 @@
     });
 
     const restoreMessage=restoreScenario();
+
     calculate();
-    if(restoreMessage) $('actionStatus').textContent=restoreMessage;
+
+    if(restoreMessage) {
+      $('actionStatus').textContent=restoreMessage;
+    }
   </script>
 </body>
 </html>
