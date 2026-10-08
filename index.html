@@ -64,6 +64,16 @@
     .chart { width:100%; height:auto; display:block; margin-top:18px; overflow:visible; }
     .legend { display:flex; align-items:center; justify-content:space-between; color:var(--muted); font-size:11px; gap:12px; }
     .dot { display:inline-block; width:7px; height:7px; background:var(--accent); border-radius:50%; margin-right:6px; }
+    .scenario-scroll { overflow-x:auto; margin-top:18px; }
+    .scenario-table { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
+    .scenario-table caption { text-align:left; color:var(--muted); font-size:12px; line-height:1.6; padding-bottom:14px; }
+    .scenario-table th,.scenario-table td { padding:13px 12px; border-bottom:1px solid var(--line); text-align:right; white-space:nowrap; }
+    .scenario-table th { color:var(--muted); font-size:11px; font-weight:600; }
+    .scenario-table th:first-child,.scenario-table td:first-child { text-align:left; }
+    .scenario-table tbody th { color:var(--text); font-size:13px; }
+    .scenario-table .selected { background:color-mix(in srgb,var(--accent) 10%,var(--panel)); }
+    .scenario-table .selected th { color:var(--accent); }
+    .scenario-table .current-label { display:block; font-size:10px; margin-top:4px; color:var(--accent); }
     .rows { margin-top:21px; }
     .row { display:flex; justify-content:space-between; gap:18px; padding:13px 0; border-top:1px solid var(--line); }
     .row span { color:var(--muted); font-size:12px; }
@@ -124,6 +134,17 @@
           </div>
           <div class="assumption">All unlocked tokens are assumed to enter circulation. Price and daily volume stay fixed in this model. Selling is spread evenly across the period. Trading volume does not measure order-book liquidity or predict price impact.</div>
         </div>
+        <div class="panel">
+          <div class="panel-top"><div><h2 class="chart-title">Compare selling scenarios</h2><div class="chart-sub">Same unlock, price, duration and daily volume</div></div><span class="tag">03 / COMPARE</span></div>
+          <div class="scenario-scroll" role="region" aria-label="Selling scenario comparison" tabindex="0">
+            <table class="scenario-table">
+              <caption>Compare 10%, 25%, 50% and 100% sold. Your selected share is highlighted and included if different.</caption>
+              <thead><tr><th scope="col">Share sold</th><th scope="col">Tokens sold</th><th scope="col">Total selling</th><th scope="col">Daily selling</th><th scope="col">Daily selling / volume</th></tr></thead>
+              <tbody id="scenarioRows"></tbody>
+            </table>
+          </div>
+          <p class="hint" id="scenarioStatus" aria-live="polite"></p>
+        </div>
       </section>
     </main>
     <footer><span>Token Unlock Calculator · Built for clearer tokenomics</span><span>Scenario estimates · No live market data</span></footer>
@@ -148,6 +169,39 @@
       const result = { next, unlockValue, selling, dailySelling, dailyTokens:v.unlock/v.days, share:v.unlock/v.supply*100, circulatingShare:next/v.supply*100, marketCap:next*v.price, growth:v.circulating ? v.unlock/v.circulating*100 : null, ratio:v.volume ? dailySelling/v.volume*100 : null };
       if (!Object.values(result).every(x => x === null || Number.isFinite(x))) throw new Error('These values are too large to calculate. Use smaller numbers.');
       return result;
+    }
+
+    function buildScenarios(v) {
+      return [...new Set([10,25,50,100,v.sell])].sort((a,b)=>a-b).map(share => {
+        const r=compute({...v,sell:share});
+        const tokens=v.unlock*(share/100);
+        if (!Number.isFinite(tokens)) throw new Error('These values are too large to calculate. Use smaller numbers.');
+        return {share,tokens,selling:r.selling,dailySelling:r.dailySelling,ratio:r.ratio};
+      });
+    }
+
+    function renderScenarios(v,scenarios) {
+      const rows=$('scenarioRows');
+      rows.replaceChildren();
+      scenarios.forEach(scenario => {
+        const tr=document.createElement('tr');
+        const selected=scenario.share===v.sell;
+        if (selected) tr.classList.add('selected');
+        const heading=document.createElement('th');
+        heading.scope='row';
+        heading.textContent=percent(scenario.share);
+        if (selected) {
+          const label=document.createElement('span');
+          label.className='current-label'; label.textContent='Selected';
+          heading.appendChild(label);
+        }
+        tr.appendChild(heading);
+        [number(scenario.tokens),usd(scenario.selling),usd(scenario.dailySelling),scenario.ratio===null?'N/A':percent(scenario.ratio)].forEach(value => {
+          const cell=document.createElement('td'); cell.textContent=value; tr.appendChild(cell);
+        });
+        rows.appendChild(tr);
+      });
+      $('scenarioStatus').textContent=v.volume===0?'Enter daily trading volume above zero to compare volume ratios.':'Ratios describe hypothetical selling versus trading volume; they do not predict a price drop.';
     }
 
     function drawChart(v) {
@@ -182,6 +236,7 @@
         const v={};
         keys.forEach(key => { if ($(key).value.trim()==='') throw new Error('Fill in every field before calculating.'); v[key]=Number($(key).value); });
         const r=compute(v);
+        const scenarios=buildScenarios(v);
         $('growth').textContent=r.growth===null?'N/A':'+'+percent(r.growth);
         $('unlockValue').textContent=usd(r.unlockValue);
         $('newSupply').textContent=compact(r.next);
@@ -191,12 +246,15 @@
         Object.entries(values).forEach(([id,value]) => $(id).textContent=value);
         $('scheduleLabel').textContent=v.days===1?'1-day unlock scenario':'Linear daily unlock';
         drawChart(v);
+        renderScenarios(v,scenarios);
         $('error').hidden=true;
         $('error').textContent='';
       } catch (error) {
         $('error').textContent=error.message; $('error').hidden=false;
         ['growth','unlockValue','newSupply','supplyNote','volumeRatio','unlockShare','dailyTokens','sellValue','dailySelling','marketCap'].forEach(id=>$(id).textContent='—');
         $('chart').replaceChildren();
+        $('scenarioRows').replaceChildren();
+        $('scenarioStatus').textContent='Enter valid inputs to compare scenarios.';
       }
     }
     function setTheme(theme) {
