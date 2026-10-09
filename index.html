@@ -49,7 +49,7 @@
 
     .primary { width:100%; border:0; border-radius:11px; background:var(--lime); color:var(--lime-text); padding:14px; font-weight:750; display:flex; justify-content:space-between; align-items:center; }
     .primary:hover { filter:brightness(1.05); }
-    .actions { display:flex; gap:10px; margin-top:12px; }
+    .actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; }
     .secondary { flex:1; padding:11px 10px; border:1px solid var(--line); border-radius:10px; color:var(--text); background:var(--input); font-weight:600; }
     .status { color:var(--muted); font-size:11px; line-height:1.6; margin:12px 0 0; }
     .share-link { margin-top:10px; }
@@ -205,6 +205,7 @@
 
         <div class="actions">
           <button class="secondary" id="shareButton" type="button">Share scenario</button>
+          <button class="secondary" id="exportButton" type="button">Export CSV</button>
           <button class="secondary" id="resetButton" type="button">Reset</button>
         </div>
 
@@ -457,6 +458,76 @@
         $('shareUrl').focus();
         $('shareUrl').select();
         $('actionStatus').textContent='Select and copy the link below.';
+      }
+    }
+
+    function buildCsv(v) {
+      const r=compute(v);
+      const scenarios=buildScenarios(v);
+      const rows=[
+        ['Token Unlock Calculator'],
+        ['Model','Fixed price and volume; equal daily unlocks and selling.'],
+        ['Note','Trading volume does not measure liquidity or predict price impact.'],
+        [],
+        ['Input','Value','Unit'],
+        ['Total supply',v.supply,'tokens'],
+        ['Current circulating supply',v.circulating,'tokens'],
+        ['Upcoming unlock',v.unlock,'tokens'],
+        ['Token price',v.price,'USD'],
+        ['Unlock duration',v.days,'days'],
+        ['Selected share sold',v.sell,'%'],
+        ['Average daily trading volume',v.volume,'USD'],
+        [],
+        ['Result','Value','Unit'],
+        ['Circulating supply growth',r.growth===null?'N/A':r.growth,'%'],
+        ['Total unlock value',r.unlockValue,'USD'],
+        ['New circulating supply',r.next,'tokens'],
+        ['New circulating / total supply',r.circulatingShare,'%'],
+        ['Unlock / total supply',r.share,'%'],
+        ['Tokens unlocked per day',r.dailyTokens,'tokens/day'],
+        ['Hypothetical total selling',r.selling,'USD'],
+        ['Hypothetical selling per day',r.dailySelling,'USD/day'],
+        ['Daily selling / daily volume',r.ratio===null?'N/A':r.ratio,'%'],
+        ['Market cap after unlock at fixed price',r.marketCap,'USD'],
+        [],
+        ['Share sold (%)','Tokens sold','Total selling (USD)',
+         'Daily selling (USD)','Daily selling / volume (%)','Selected']
+      ];
+
+      scenarios.forEach(s=>rows.push([
+        s.share,s.tokens,s.selling,s.dailySelling,
+        s.ratio===null?'N/A':s.ratio,s.share===v.sell?'Yes':'No'
+      ]));
+
+      // Quote every cell and keep numeric values free of display formatting.
+      return '\uFEFF'+rows.map(row=>row.map(value=>
+        '"'+String(value).replace(/"/g,'""')+'"'
+      ).join(',')).join('\r\n')+'\r\n';
+    }
+
+    function exportScenario() {
+      // Recalculate first so the file always matches the current inputs.
+      if (!calculate()) return;
+
+      let downloadUrl;
+      let link;
+
+      try {
+        const csv=buildCsv(readInputs());
+        downloadUrl=URL.createObjectURL(new Blob([csv],{
+          type:'text/csv;charset=utf-8'
+        }));
+        link=document.createElement('a');
+        link.href=downloadUrl;
+        link.download='token-unlock-scenario.csv';
+        document.body.appendChild(link);
+        link.click();
+        $('actionStatus').textContent='CSV download started. Includes inputs, results and selling scenarios.';
+      } catch {
+        $('actionStatus').textContent='CSV could not be exported. Try again in your browser.';
+      } finally {
+        if(link) link.remove();
+        if(downloadUrl) setTimeout(()=>URL.revokeObjectURL(downloadUrl),1000);
       }
     }
 
@@ -778,6 +849,7 @@
     });
 
     $('shareButton').addEventListener('click',shareScenario);
+    $('exportButton').addEventListener('click',exportScenario);
     $('resetButton').addEventListener('click',resetScenario);
 
     $('calculator').addEventListener('input',event=>{
